@@ -1,7 +1,9 @@
-# Ignore legacy Python Streamlit prototype from Vercel deployment
+
+# Exclude the legacy Python application
 legacy_streamlit/
-digital_image_forensics_tool/
 .venv/
-*.py
+digital_image_forensics_tool/
+
+# Exclude Python dependencies and generated documents
 requirements.txt
 *.docx
