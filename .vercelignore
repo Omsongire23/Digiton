@@ -1,0 +1,7 @@
+# Ignore legacy Python Streamlit prototype from Vercel deployment
+legacy_streamlit/
+digital_image_forensics_tool/
+.venv/
+*.py
+requirements.txt
+*.docx

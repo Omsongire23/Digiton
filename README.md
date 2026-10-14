@@ -87,7 +87,7 @@ Digiton is architected around a **pure unidirectional data flow** and a **parall
 ## 3. Repository Structure
 
 ```text
-Digital_Image_Forensics_Mini_Project/
+/
 ├── index.html                           # Accessible HTML5 Single Page Application
 ├── css/
 │   ├── tokens.css                       # Design tokens (dark palette, HSL, spacing, typography)
@@ -113,12 +113,15 @@ Digital_Image_Forensics_Mini_Project/
 │   └── VERSIONS.md                      # Vendor dependency audit & licenses
 ├── assets/
 │   └── logo.svg                         # Vector branding icon
-├── vercel.json                          # Static deployment configuration & CSP security headers
-├── package.json                         # Project metadata & local development scripts
-├── digital_image_forensics_tool/        # Companion Python/Streamlit version
-│   ├── app.py                           # Streamlit forensics dashboard
+├── legacy_streamlit/                    # Companion Python/Streamlit version (isolated from Vercel)
+│   ├── streamlit_app.py                 # Streamlit desktop dashboard (renamed from app.py)
 │   ├── requirements.txt                 # Python dependencies (Pillow, reportlab, streamlit)
+│   ├── README.md                        # Streamlit documentation
 │   └── College_Project_Report.docx      # Academic report documentation
+├── vercel.json                          # Static deployment configuration & CSP security headers
+├── .vercelignore                        # Excludes legacy Python code from Vercel static build
+├── .gitignore                           # Git ignore rules
+├── package.json                         # Project metadata & local development scripts
 └── README.md                            # Primary project documentation
 ```
 
@@ -144,7 +147,7 @@ Open **[http://localhost:5500](http://localhost:5500)** in any modern browser (C
 For running the standalone Python desktop-triage tool:
 
 ```bash
-cd /home/om/Downloads/Digital_Image_Forensics_Mini_Project/digital_image_forensics_tool
+cd /home/om/Downloads/Digital_Image_Forensics_Mini_Project/legacy_streamlit
 
 # Create and activate virtual environment
 python3 -m venv .venv
@@ -155,13 +158,34 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Run the Streamlit dashboard
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 Open the local URL printed in your terminal (typically **http://localhost:8501**).
 
 ---
 
-## 5. Forensic Principles & Limitations
+## 5. Vercel Static Deployment
+
+Digiton is deployed to Vercel as a **pure static site** with zero build configuration.
+
+### Why the Previous Build Failed
+Vercel automatically scans for serverless entry points. If a file named `app.py` is detected, Vercel invokes `@vercel/python`, which fails because Streamlit does not export a WSGI `app` or `handler` variable.
+
+### How It Is Resolved
+1. Streamlit files are isolated in `legacy_streamlit/` and the entry file is renamed to `streamlit_app.py`.
+2. `.vercelignore` instructs Vercel to completely skip `legacy_streamlit/`, `.venv/`, and Python files.
+3. `vercel.json` provides static headers and Content-Security-Policy.
+
+### Steps to Deploy
+1. Import repository `https://github.com/Omsongire23/Digiton.git` in Vercel.
+2. **Framework Preset:** `Other`.
+3. **Build Command:** *(Leave empty)*.
+4. **Output Directory:** *(Leave empty)*.
+5. Click **Deploy**.
+
+---
+
+## 6. Forensic Principles & Limitations
 
 1. **Investigative Indicators, Not Conclusive Proof:**
    - ELA highlights compression variance across 8×8 discrete cosine transform (DCT) grids. High-frequency textures, sharp edges, text overlays, and multi-generation saves naturally exhibit elevated error levels without malicious intent.
@@ -174,7 +198,7 @@ Open the local URL printed in your terminal (typically **http://localhost:8501**
 
 ---
 
-## 6. Suggested Verification Test Cases
+## 7. Suggested Verification Test Cases
 
 | Test Case | Expected Forensic Indicator |
 |---|---|
@@ -186,7 +210,7 @@ Open the local URL printed in your terminal (typically **http://localhost:8501**
 
 ---
 
-## 7. Evidence Handling & Chain of Custody
+## 8. Evidence Handling & Chain of Custody
 
 - Always preserve master original files on write-blocked or read-only storage.
 - Calculate cryptographic hashes immediately upon acquiring evidence.

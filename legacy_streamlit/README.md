@@ -115,10 +115,11 @@ Digital_Image_Forensics_Mini_Project/
 │   └── logo.svg                         # Vector branding icon
 ├── vercel.json                          # Static deployment configuration & CSP security headers
 ├── package.json                         # Project metadata & local development scripts
-├── digital_image_forensics_tool/        # Companion Python/Streamlit version
-│   ├── app.py                           # Streamlit forensics dashboard
+├── legacy_streamlit/                    # Companion Python/Streamlit version (isolated from Vercel)
+│   ├── streamlit_app.py                 # Streamlit forensics dashboard
 │   ├── requirements.txt                 # Python dependencies (Pillow, reportlab, streamlit)
 │   └── College_Project_Report.docx      # Academic report documentation
+├── .vercelignore                        # Ignores legacy Python code on Vercel deployment
 └── README.md                            # Primary project documentation
 ```
 
@@ -144,7 +145,7 @@ Open **[http://localhost:5500](http://localhost:5500)** in any modern browser (C
 For running the standalone Python desktop-triage tool:
 
 ```bash
-cd /home/om/Downloads/Digital_Image_Forensics_Mini_Project/digital_image_forensics_tool
+cd /home/om/Downloads/Digital_Image_Forensics_Mini_Project/legacy_streamlit
 
 # Create and activate virtual environment
 python3 -m venv .venv
@@ -155,7 +156,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # Run the Streamlit dashboard
-streamlit run app.py
+streamlit run streamlit_app.py
 ```
 Open the local URL printed in your terminal (typically **http://localhost:8501**).
 
