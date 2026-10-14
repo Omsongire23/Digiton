@@ -1,0 +1,35 @@
+# Sensitive documentation & prompts
+claude.md
+CLAUDE.md
+VERSIONS.md
+versions.md
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python cache & build
+__pycache__/
+*.py[cod]
+*$py.class
+dist/
+build/
+*.egg-info/
+
+# Environment variables & secrets
+.env
+.env.*
+*.key
+*.pem
+credentials.json
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+~$*.docx

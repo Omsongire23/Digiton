@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Digital Image Forensics Tool</title>
+  <meta name="description"
+    content="Browser-based forensic image triage: EXIF metadata, SHA-256 integrity hash, Error Level Analysis (ELA), and PDF/JSON reports. All analysis runs locally — no uploads to any server." />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/tokens.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+
+  <!-- Vendor libraries (locally vendored, no CDN) -->
+  <script src="vendor/exifr.umd.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <!-- Skip link -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- aria-live region for screen readers -->
+  <div id="aria-live" aria-live="polite" class="sr-only"></div>
+
+  <!-- Toast container -->
+  <div class="toast-container" aria-label="Notifications"></div>
+
+  <div class="app-shell">
+
+    <!-- ── HEADER ── -->
+    <header class="app-header" role="banner">
+      <a href="/" class="header-logo" aria-label="Digital Image Forensics Tool home">
+        <img src="assets/logo.svg" alt="" width="32" height="32" aria-hidden="true" />
+        <span class="header-title">Digiton</span>
+      </a>
+      <div class="header-spacer"></div>
+      <div class="local-badge" aria-label="All analysis is performed locally in your browser">
+        <span class="local-badge-dot" aria-hidden="true"></span>
+        Local analysis
+      </div>
+    </header>
+
+    <!-- ── MAIN ── -->
+    <main class="app-main" id="main-content" role="main">
+
+      <!-- Workspace heading -->
+      <div class="workspace-header">
+        <h1 class="workspace-title">Image Forensics Workspace</h1>
+        <p class="workspace-subtitle">Inspect metadata, integrity hash, and error levels of an image - entirely in your
+          browser.</p>
+      </div>
+
+      <!-- Forensic notice (always visible) -->
+      <div class="forensic-notice" role="note" aria-label="Forensic interpretation notice">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
+        </svg>
+        <span>
+          <strong>Forensic notice:</strong>
+          ELA and metadata are investigative indicators, not proof of manipulation.
+          Missing metadata and ELA differences can have innocent causes such as compression, resizing, or re-saving.
+          Treat all findings as leads for further expert examination.
+        </span>
+      </div>
+
+      <!-- ── UPLOAD SECTION ── -->
+      <section class="upload-section" aria-label="Image upload">
+
+        <!-- Full dropzone (shown initially) -->
+        <div id="dropzone" class="dropzone-full" role="region" aria-label="Image upload dropzone">
+          <div class="dropzone-icon" aria-hidden="true">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </div>
+          <p class="dropzone-heading">Drop an image here</p>
+          <p class="dropzone-sub">or</p>
+          <button class="btn btn-primary" id="browse-btn" aria-label="Browse for image file">Browse files</button>
+          <p class="dropzone-meta">Accepted: JPEG · PNG · WebP &nbsp;|&nbsp; Max 20 MB</p>
+          <div id="dropzone-status" class="dropzone-status" aria-live="polite" role="status"></div>
+        </div>
+
+        <!-- Hidden file input -->
+        <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" class="sr-only"
+          aria-label="Select image file" tabindex="-1" />
+
+        <!-- Compact bar (shown after upload) -->
+        <div id="dropzone-compact" class="dropzone-compact hidden" role="region" aria-label="Uploaded file">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          <span class="dropzone-compact-name" aria-label="Uploaded filename">—</span>
+          <span class="dropzone-compact-size text-muted text-xs">—</span>
+          <button class="btn btn-sm btn-secondary" id="replace-btn">Replace image</button>
+          <button class="btn btn-sm btn-ghost" id="reset-btn">Reset</button>
+        </div>
+      </section>
+
+      <!-- ── EVIDENCE STRIP ── -->
+      <div id="evidence-strip" class="evidence-strip" aria-label="Evidence summary" role="region"></div>
+
+      <!-- ── WORKSPACE GRID (tabs + sidebar) ── -->
+      <div class="workspace-grid">
+
+        <!-- ── TABS ── -->
+        <div class="tab-container card">
+          <div role="tablist" aria-label="Analysis sections" class="tablist">
+
+            <button role="tab" id="tab-btn-overview" data-tab="overview" aria-selected="true"
+              aria-controls="tab-overview" tabindex="0" class="tab-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              Overview
+            </button>
+
+            <button role="tab" id="tab-btn-metadata" data-tab="metadata" aria-selected="false"
+              aria-controls="tab-metadata" tabindex="-1" class="tab-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="16" y1="13" x2="8" y2="13" />
+                <line x1="16" y1="17" x2="8" y2="17" />
+                <polyline points="10 9 9 9 8 9" />
+              </svg>
+              Metadata
+              <span class="tab-count" aria-label="tag count"></span>
+            </button>
+
+            <button role="tab" id="tab-btn-ela" data-tab="ela" aria-selected="false" aria-controls="tab-ela"
+              tabindex="-1" class="tab-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              ELA
+            </button>
+
+            <button role="tab" id="tab-btn-integrity" data-tab="integrity" aria-selected="false"
+              aria-controls="tab-integrity" tabindex="-1" class="tab-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+              Integrity
+            </button>
+
+            <button role="tab" id="tab-btn-report" data-tab="report" aria-selected="false" aria-controls="tab-report"
+              tabindex="-1" class="tab-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Report
+            </button>
+
+          </div><!-- /tablist -->
+
+          <!-- Tab panels -->
+          <div id="tab-overview" role="tabpanel" aria-labelledby="tab-btn-overview" class="tabpanel card-body"></div>
+          <div id="tab-metadata" role="tabpanel" aria-labelledby="tab-btn-metadata" class="tabpanel card-body" hidden>
+          </div>
+          <div id="tab-ela" role="tabpanel" aria-labelledby="tab-btn-ela" class="tabpanel card-body" hidden></div>
+          <div id="tab-integrity" role="tabpanel" aria-labelledby="tab-btn-integrity" class="tabpanel card-body" hidden>
+          </div>
+          <div id="tab-report" role="tabpanel" aria-labelledby="tab-btn-report" class="tabpanel card-body" hidden></div>
+
+        </div><!-- /tab-container -->
+
+        <!-- ── DETAILS SIDEBAR ── -->
+        <aside class="details-sidebar" aria-label="Analysis status and evidence facts">
+          <div id="details-sidebar"></div>
+        </aside>
+
+      </div><!-- /workspace-grid -->
+
+    </main><!-- /main -->
+
+    <!-- ── FOOTER ── -->
+    <footer class="app-footer" role="contentinfo">
+      <div>Digital Image Forensics Tool v1.0.0 &nbsp;·&nbsp; Academic mini-project</div>
+      <div class="footer-links">
+        <span>All image processing is performed locally in your browser.</span>
+        <span>·</span>
+        <span>No data is sent to any server.</span>
+        <span>·</span>
+        <span>ELA and metadata are indicators only — not conclusive proof.</span>
+      </div>
+    </footer>
+
+  </div><!-- /app-shell -->
+
+  <!-- Main module entrypoint -->
+  <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

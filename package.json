@@ -1,0 +1,11 @@
+{
+  "name": "digital-image-forensics-tool",
+  "version": "1.0.0",
+  "description": "Browser-based digital image forensics tool — EXIF, SHA-256, ELA, PDF/JSON reports",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python3 -m http.server 8080 --directory ."
+  },
+  "devDependencies": {}
+}

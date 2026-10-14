@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+  <!-- Image frame -->
+  <rect x="2" y="5" width="22" height="18" rx="2.5" stroke="#38bdf8" stroke-width="1.8" fill="none"/>
+  <!-- Mountain/landscape inside frame -->
+  <polyline points="4,19 9,13 14,17 18,11 22,16" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.55"/>
+  <!-- Magnifier circle -->
+  <circle cx="22" cy="22" r="7" fill="#0b1220" stroke="#38bdf8" stroke-width="1.8"/>
+  <!-- Magnifier cross-hair lines -->
+  <line x1="22" y1="18.5" x2="22" y2="25.5" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+  <line x1="18.5" y1="22" x2="25.5" y2="22" stroke="#38bdf8" stroke-width="1.4" stroke-linecap="round" opacity="0.8"/>
+  <!-- Magnifier handle -->
+  <line x1="27.2" y1="27.2" x2="30" y2="30" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
+</svg>
